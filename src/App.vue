@@ -20,14 +20,14 @@
               <option value="">Random</option>
               <option v-for="item in categories" :value="item">{{ item }}</option>
             </select>
-            <button type="submit" class="btn-submit">Search</button>
+            <button type="submit" class="btn-submit" :disabled="loading">Search</button>
           </form>
         </div>
         <div class="input-text" v-if="isFreetext">
           <form @submit.prevent="handleSearch()">
             <label>Free text: </label>
             <input id="text" name="text" v-model="search"/>
-            <button type="submit" class="btn-submit">Search</button>
+            <button type="submit" class="btn-submit" :disabled="loading">Search</button>
           </form>
         </div>
       </div>
@@ -50,6 +50,9 @@
         </div>
         <div v-if="!hasResult">
           Click search to be happy!
+        </div>
+        <div v-if="loading">
+          Getting the joke...
         </div>
       </div>
       <ul v-if="hasResult && isFreetext">
@@ -88,9 +91,10 @@ export default {
       page: 1,
       perPage: 1,
       pages: [],
+      loading: false,
     }
   },
-  mounted() {
+  created() {
     const x = this;
     getCategories(function(response) {
       if(response.isSuccess) {
@@ -111,15 +115,17 @@ export default {
     },
     handleSearch() {
       const x = this;
-      // console.log(this.search); 
+      this.loading = true;
       getJoke(this.search, this.isFreetext, function(response) {
         console.log(response)
         if(response.isSuccess && !response.isFreetext) {
           x.joke = response.joke;
           x.hasResult = true;
+          x.loading = false;
         } else if(response.isSuccess && response.isFreetext) {
           x.jokes = response.jokes;
           x.hasResult = true;
+          x.loading = false;
         }
       });
     },
